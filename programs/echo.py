@@ -14,19 +14,18 @@ from hardware import (
 )
 
 # Constants
-TAPE_LENGTH    = 100    # ms
+TAPE_LENGTH    = 100   # ms
 
-MIN_DELAY      = 10     # ms
-MAX_DELAY      = 1000   # ms
-MAX_EXPRESSION = 500    # ms
+MIN_DELAY      = 10    # ms
+MAX_DELAY      = 1000  # ms
+MAX_EXPRESSION = 500   # ms
 
 LFO_SPEED      = 0.5   # s
-LFO_SCALE      = 0.1
+LFO_SCALE      = 0.05
 
-MIN_FILTER     = 100    # hz
-MAX_FILTER     = 20000  # hz
+FILTER_FREQ    = 4000  # hz
 
-BUFFER_SIZE    = 2048   # bytes
+BUFFER_SIZE    = 2048  # bytes
 
 # Audio Objects
 delay_ms = synthio.Math(
@@ -60,7 +59,7 @@ delay_effect = Echo(
 )
 
 filter_effect = Filter(
-    filter=synthio.Biquad(synthio.FilterMode.LOW_PASS, MAX_FILTER),
+    filter=synthio.Biquad(synthio.FilterMode.LOW_PASS, FILTER_FREQ),
     mix=1.0,
 
     buffer_size=BUFFER_SIZE,
@@ -87,11 +86,11 @@ while True:
     pots = get_pot_values()
 
     now = time.monotonic()
-    if now - timestamp >= delay_effect.delay_ms.value:
+    if now - timestamp >= delay_effect.delay_ms.value / 1000:
         timestamp = now
         led_state = not led_state
 
-    led.duty_cycle = int(pots[2] * (2 ** 16 - 1)) if led_state and not is_bypassed() else 0
+    led.duty_cycle = (2 ** 16 - 1) * (led_state and not is_bypassed())
 
     filter_effect.mix = 1.0 * (not left_switch.value)
     delay_lfo.scale = LFO_SCALE * (not right_switch.value)
