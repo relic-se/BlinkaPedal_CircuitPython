@@ -2,27 +2,24 @@
 #
 # SPDX-License-Identifier: GPLv3
 
-from hardware import (
-    codec, audio_in, audio_out,
-    led, right_button, left_switch,
-    update, get_pot_values, bypass, is_bypassed, mix, level
-)
+from blinka_pedal import BlinkaPedal
+
+# Initialize Hardware
+pedal = BlinkaPedal()
 
 # Audio Chain
-audio_out.play(
-    audio_in
+pedal.audio_out.play(
+    pedal.audio_in
 )
 
 while True:
-    update()
-    pots = get_pot_values()
+    pedal.update()
+    pots = pedal.pots
 
-    if right_button.released:
-        bypass()
+    if pedal.right_button.released:
+        pedal.bypass = not pedal.bypass
+        pedal.led = not pedal.bypass
 
-    led.duty_cycle = (2 ** 16 - 1) * (not is_bypassed())
+    pedal.mix, pedal.level, _ = pedal.pots
 
-    mix(pots[0])
-    level(pots[1])
-
-    codec.adc_loopback = not left_switch.value
+    pedal.codec.adc_loopback = not pedal.left_switch.value

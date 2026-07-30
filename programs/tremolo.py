@@ -1,16 +1,11 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 Cooper Dalrymple
+# SPDX-FileCopyrightText: Copyright (c) 2026 Cooper Dalrymple
 #
 # SPDX-License-Identifier: GPLv3
 
 import synthio
 import ulab.numpy as np
 
-from hardware import (
-    codec, audio_in, audio_out,
-    led, left_switch, right_switch, left_button, right_button,
-    update, get_pot_values, bypass, is_bypassed, mix, level
-)
-mix(0.0)
+from blink_pedal import BlinkaPedal
 
 # Constants
 MIN_SPEED = 0.1
@@ -22,6 +17,8 @@ SPEED_MOD = (
     3.0,
     -0.75
 )
+
+# Create Waveforms
 
 SAMPLE_SIZE = 1024
 SAMPLE_VOLUME = 32767
@@ -40,10 +37,14 @@ waveforms = (
 )
 waveform = -1
 
+# Initialize Hardware
+pedal = BlinkaPedal()
+pedal.mix = 0.0
+
 # Synth and LFO
 synth = synthio.Synthesizer(
-    sample_rate=codec.sample_rate,
-    channel_count=audio_in.channel_count,
+    sample_rate=pedal.sample_rate,
+    channel_count=pedal.channel_count,
 )
 
 lfo = synthio.Math(
@@ -60,7 +61,7 @@ lfo = synthio.Math(
 synth.blocks.append(lfo)  # Use synth to update LFO
 
 # Audio Chain
-audio_out.play(synth)  # No audio will actually happen
+pedal.audio_out.play(synth)  # No audio will actually happen
 
 # Assign controls
 def set_waveform(index: int):
@@ -72,22 +73,23 @@ def set_waveform(index: int):
             lfo.a.waveform[i] = waveforms[waveform][i]
 set_waveform(0)
 
-double = False
+mod = False
 while True:
-    update()
+    pedal.update()
 
-    pots = get_pot_values()
-    lfo.a.rate = (pots[0] * (MAX_SPEED - MIN_SPEED) + MIN_SPEED) * (1 + SPEED_MOD[(not left_switch.value) + (not right_switch.value) * 2] * double)
+    pots = pedal.pots
+    mod_index = int(not pedal.left_switch.value) | (int(not pedal.right_switch.value) << 1)
+    lfo.a.rate = (pots[0] * (MAX_SPEED - MIN_SPEED) + MIN_SPEED) * (1 + SPEED_MOD[mod_index] * mod)
     set_waveform(round(pots[1] * (len(waveforms) - 1)))
     lfo.b = pots[2]  # depth
 
-    led.duty_cycle = int((2 ** 16 - 1) * lfo.value) * (not is_bypassed())
-    level(lfo.value)
+    pedal.led = lfo.value * (not pedal.bypass)
+    pedal.level = lfo.value
 
-    if left_button.pressed:
-        double = True
-    elif left_button.released:
-        double = False
+    if pedal.left_button.pressed:
+        mod = True
+    elif pedal.left_button.released:
+        mod = False
 
-    if right_button.released:
-        bypass()
+    if pedal.right_button.pressed:
+        pedal.bypass = not pedal.bypass

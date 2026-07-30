@@ -7,11 +7,7 @@ from audiofilters import Filter
 import synthio
 import time
 
-from hardware import (
-    codec, audio_in, audio_out,
-    led, left_switch, right_switch, left_button, right_button,
-    update, get_pot_values, bypass, is_bypassed, mix
-)
+from blinka_pedal import BlinkaPedal
 
 # Constants
 TAPE_LENGTH    = 100   # ms
@@ -26,6 +22,9 @@ LFO_SCALE      = 0.05
 FILTER_FREQ    = 4000  # hz
 
 BUFFER_SIZE    = 2048  # bytes
+
+# Initialize Hardware
+pedal = BlinkaPedal()
 
 # Audio Objects
 delay_ms = synthio.Math(
@@ -50,12 +49,9 @@ delay_effect = Echo(
     ),
     mix=1.0,
     freq_shift=True,
-    
-    sample_rate=codec.sample_rate,
-    channel_count=audio_in.channel_count,
+
     buffer_size=BUFFER_SIZE,
-    samples_signed=audio_in.samples_signed,
-    bits_per_sample=audio_in.bits_per_sample,
+    **pedal.audiosample_args,
 )
 
 filter_effect = Filter(
@@ -63,17 +59,14 @@ filter_effect = Filter(
     mix=1.0,
 
     buffer_size=BUFFER_SIZE,
-    sample_rate=codec.sample_rate,
-    channel_count=audio_in.channel_count,
-    bits_per_sample=audio_in.bits_per_sample,
-    samples_signed=audio_in.samples_signed,
+    **pedal.audiosample_args,
 )
 
 # Audio Chain
-audio_out.play(
+pedal.audio_out.play(
     filter_effect.play(
         delay_effect.play(
-            audio_in
+            pedal.audio_in
         )
     )
 )
@@ -82,28 +75,28 @@ led_state = True
 infinite = False
 timestamp = time.monotonic()
 while True:
-    update()
-    pots = get_pot_values()
+    pedal.update()
 
     now = time.monotonic()
     if now - timestamp >= delay_effect.delay_ms.value / 1000:
         timestamp = now
         led_state = not led_state
 
-    led.duty_cycle = (2 ** 16 - 1) * (led_state and not is_bypassed())
+    pedal.led = led_state and not pedal.bypass
 
-    filter_effect.mix = 1.0 * (not left_switch.value)
-    delay_lfo.scale = LFO_SCALE * (not right_switch.value)
+    filter_effect.mix = 1.0 * (not pedal.left_switch.value)
+    delay_lfo.scale = LFO_SCALE * (not pedal.right_switch.value)
 
-    if right_button.released:
-        bypass()
+    if pedal.right_button.released:
+        pedal.bypass = not pedal.bypass
 
-    # TODO: left button tap tempo
-    if left_button.pressed:
+    # TODO: left button tap tempo?
+    if pedal.left_button.pressed:
         infinite = True
-    elif left_button.released:
+    elif pedal.left_button.released:
         infinite = False
 
-    mix(pots[0])
+    pots = pedal.pots
+    pedal.mix = pots[0]
     delay_effect.decay = 1.0 if infinite else pots[1]
     delay_ms.c = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
