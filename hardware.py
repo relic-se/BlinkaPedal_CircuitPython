@@ -76,29 +76,29 @@ codec = TLV320AIC3204(
     rst=_PIN_RST,
 )
 
-# Connect IN1L to Left MICPGA and IN1R to Right MICPGA
-codec.connect_input(INPUT_1, IMPEDANCE_40K)
-codec.input_gain = 0.0  # dB
+# Connect IN1L to Left MICPGA
+codec.connect_left_input(INPUT_1, IMPEDANCE_40K)
+codec.left_input_gain = 0.0  # dB
 
 # Setup DAC Output
-# codec.dac_volume = 0.0  # dB
-codec.dac_enabled = True
-# codec.dac_muted = False
-codec.dac_to_line_output = True
+# codec.left_dac_volume = 0.0  # dB
+codec.left_dac_enabled = True
+# codec.left_dac_muted = False
+codec.left_dac_to_left_line_output = True
 
 # Setup ADC Input
-codec.adc_volume = -12.0  # dB
-codec.adc_enabled = True
-codec.adc_muted = False
+codec.left_adc_volume = -12.0  # dB
+codec.left_adc_enabled = True
+codec.left_adc_muted = False
 
 # Setup Passthrough Input Mixer
-codec.input_passthrough_enabled = True
-# codec.input_passthrough_volume = 0.0  # dB
-codec.input_to_line_output = True
+codec.left_input_passthrough_enabled = True
+# codec.left_input_passthrough_volume = 0.0  # dB
+codec.left_input_to_left_line_output = True
 
 # Line Output
-codec.line_output_enabled = True
-codec.line_output_muted = False
+codec.left_line_output_enabled = True
+codec.left_line_output_muted = False
 
 # True Bypass
 _pin_bypass = digitalio.DigitalInOut(_PIN_BYPASS)
@@ -117,12 +117,12 @@ def _update_codec(force: bool = False) -> None:
 
     _pin_bypass.value = _bypass
 
-    codec.dac_muted = _bypass or _mix <= 0.01 or _level <= 0.01
-    codec.dac_volume = -63.5 * (1.0 - min(_mix * 2.0, 1.0) * _level)
-    # codec.dac_to_line_output = not _bypass
+    codec.left_dac_muted = _bypass or _mix <= 0.01 or _level <= 0.01
+    codec.left_dac_volume = -63.5 * (1.0 - min(_mix * 2.0, 1.0) * _level)
+    # codec.left_dac_to_left_line_output = not _bypass
 
-    codec.input_passthrough_volume = -99.9 if not _bypass and _mix >= 0.99 else (-30.1 * (1.0 - min(2.0 - _mix * 2.0, 1.0) * _level)) * (not _bypass)
-    # codec.input_to_line_output = _bypass or _mix <= 0.99
+    codec.left_input_passthrough_volume = -99.9 if not _bypass and _mix >= 0.99 else (-30.1 * (1.0 - min(2.0 - _mix * 2.0, 1.0) * _level)) * (not _bypass)
+    # codec.left_input_to_left_line_output = _bypass or _mix <= 0.99
 _update_codec()
 
 def is_bypassed() -> bool:
