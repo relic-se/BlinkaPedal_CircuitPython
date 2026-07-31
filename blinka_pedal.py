@@ -114,11 +114,11 @@ class BlinkaPedal:
             self._codec.right_dac_to_right_line_output = True
 
         # Setup ADC Input
-        self._codec.left_adc_volume = -12.0  # dB
+        self._codec.left_adc_volume = 0.0  # dB
         self._codec.left_adc_enabled = True
         self._codec.left_adc_muted = False
         if not self._mono:
-            self._codec.right_adc_volume = -12.0  # dB
+            self._codec.right_adc_volume = 0.0  # dB
             self._codec.right_adc_enabled = True
             self._codec.right_adc_muted = False
 
