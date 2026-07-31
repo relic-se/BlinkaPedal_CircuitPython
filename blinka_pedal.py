@@ -79,8 +79,8 @@ class BlinkaPedal:
             i2c=I2C(_PIN_SCL, _PIN_SDA),
             mclk=_PIN_MCLK,
             rst=_PIN_RST,
+            sample_rate=self._sample_rate,
         )
-        self._codec.sample_rate = self._sample_rate
 
         # Configure I2S Bus
         self._audio_in = I2SIn(
