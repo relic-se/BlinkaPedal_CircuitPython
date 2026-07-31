@@ -15,7 +15,6 @@ TAPE_LENGTH    = 100   # ms
 
 MIN_DELAY      = 10    # ms
 MAX_DELAY      = 1000  # ms
-MAX_EXPRESSION = 500   # ms
 
 LFO_SPEED      = 0.5   # s
 LFO_SCALE      = 0.05
@@ -28,13 +27,6 @@ BUFFER_SIZE    = 2048  # bytes
 pedal = BlinkaPedal()
 
 # Audio Objects
-delay_ms = synthio.Math(
-    synthio.MathOperation.SCALE_OFFSET,
-    0.0,  # Expression Amount
-    MAX_EXPRESSION,
-    TAPE_LENGTH  # Delay Value
-)
-
 delay_lfo = synthio.LFO(
     rate=LFO_SPEED,
     scale=0.0,
@@ -45,8 +37,8 @@ delay_effect = Echo(
     delay_ms=synthio.Math(
         synthio.MathOperation.SCALE_OFFSET,
         delay_lfo,
-        delay_ms,
-        delay_ms
+        TAPE_LENGTH,
+        TAPE_LENGTH
     ),
     mix=1.0,
     freq_shift=True,
@@ -101,4 +93,4 @@ while True:
     pots = pedal.pots
     pedal.mix = pots[0]
     delay_effect.decay = 1.0 if infinite else pots[1]
-    delay_ms.c = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
+    delay_effect.delay_ms.b = delay_effect.delay_ms.c = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
