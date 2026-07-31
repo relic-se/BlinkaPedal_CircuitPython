@@ -9,7 +9,7 @@ from blinka_pedal import BlinkaPedal
 import programs
 
 # Constants
-MIN_FILTER = 120
+MIN_FILTER = 600
 MAX_FILTER = 12000
 
 BOOST_GAIN = 24
