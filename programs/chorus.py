@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Cooper Dalrymple (@relic-se)
+#
+# SPDX-License-Identifier: GPLv3
+
+from audiodelays import Chorus
+from audiofilters import Filter
+from synthio import LFO, Biquad, FilterMode
+
+from blinka_pedal import BlinkaPedal
+import programs
+
+# Constants
+MIN_DELAY   = 5  # ms
+MAX_DELAY   = 50  # ms
+
+MIN_SPEED   = 0.05  # hz
+MAX_SPEED   = 4.0  # hz
+
+MIN_VOICES  = 2
+MAX_VOICES  = 4
+
+FILTER_FREQ = 4000  # hz
+
+BUFFER_SIZE = 1024  # bytes
+
+# Initialize Hardware
+pedal = BlinkaPedal()
+
+# Audio Objects
+lfo = LFO(
+    rate=MIN_SPEED,
+    offset=MIN_DELAY,
+    scale=0,
+)
+
+chorus_effect = Chorus(
+    max_delay_ms=MAX_DELAY * 2,
+    delay_ms=lfo,
+    voices=MIN_VOICES,
+    mix=1.0,
+
+    buffer_size=BUFFER_SIZE,
+    **pedal.audiosample_args,
+)
+
+filter_effect = Filter(
+    filter=Biquad(FilterMode.LOW_PASS, FILTER_FREQ),
+    mix=0.0,
+
+    buffer_size=BUFFER_SIZE,
+    **pedal.audiosample_args,
+)
+
+# Audio Chain
+pedal.audio_out.play(
+    filter_effect.play(
+        chorus_effect.play(
+            pedal.audio_in
+        )
+    )
+)
+
+double = False
+while True:
+    pedal.update()
+    programs.update(pedal)
+
+    pots = pedal.pots
+    pedal.mix = pots[0]
+    lfo.rate = (pots[1] * (MAX_SPEED - MIN_SPEED) + MIN_SPEED) * (1 + int(double))
+    lfo.offset = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
+    lfo.scale = lfo.offset / 2
+
+    filter_effect.mix = not pedal.left_switch.value
+    chorus_effect.voices = MIN_VOICES if pedal.right_switch.value else MAX_VOICES
+
+    if pedal.left_button.pressed:
+        double = True
+    elif pedal.left_button.released:
+        double = False
+
+    if pedal.right_button.released:
+        pedal.bypass = not pedal.bypass
+
+    pedal.led = ((lfo.value - lfo.offset) / lfo.scale * pots[2] + 1) / 2 * (not pedal.bypass)
