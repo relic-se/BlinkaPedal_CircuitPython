@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPLv3
 
 from blinka_pedal import BlinkaPedal
-import programs
 
 # Initialize Hardware
 pedal = BlinkaPedal()
@@ -15,7 +14,6 @@ pedal.audio_out.play(
 
 while True:
     pedal.update()
-    programs.update(pedal)
 
     if pedal.right_button.released:
         pedal.bypass = not pedal.bypass
