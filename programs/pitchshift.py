@@ -32,7 +32,7 @@ while True:
     programs.update(pedal)
 
     pots = pedal.pots
-    pedal.mix, pedal.level = pots[0:2]
+    pedal.mix, pedal.level = pots[:2]
 
     semitones = pots[2] * 24 - 12
     if not pedal.left_switch.value:
