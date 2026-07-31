@@ -8,6 +8,7 @@ import synthio
 import time
 
 from blinka_pedal import BlinkaPedal
+import programs
 
 # Constants
 TAPE_LENGTH    = 100   # ms
@@ -76,6 +77,7 @@ infinite = False
 timestamp = time.monotonic()
 while True:
     pedal.update()
+    programs.update(pedal)
 
     now = time.monotonic()
     if now - timestamp >= delay_effect.delay_ms.value / 1000:

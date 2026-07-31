@@ -9,6 +9,8 @@ import board
 from busio import I2C
 import digitalio
 from pwmio import PWMOut
+import supervisor
+# from usb_audio import usb_microphone
 
 from adafruit_debouncer import Button, Debouncer
 from relic_tlv320aic3204 import TLV320AIC3204, INPUT_1, IMPEDANCE_40K
@@ -39,8 +41,9 @@ _PIN_BYPASS = board.GP8
 
 class BlinkaPedal:
 
-    def __init__(self, mono: bool = True) -> None:
-        self._mono = mono
+    def __init__(self, sample_rate: int|None = None, mono: bool|None = None) -> None:
+        self._sample_rate = sample_rate if sample_rate is not None else int(supervisor.get_setting("SAMPLE_RATE", 44100))
+        self._mono = mono if mono is not None else bool(supervisor.get_setting("MONO", True))
 
         # Setup Controls
         self._led = PWMOut(
@@ -77,6 +80,7 @@ class BlinkaPedal:
             mclk=_PIN_MCLK,
             rst=_PIN_RST,
         )
+        self._codec.sample_rate = self._sample_rate
 
         # Configure I2S Bus
         self._audio_in = I2SIn(
@@ -143,6 +147,10 @@ class BlinkaPedal:
         self._needs_update = True
         self._update_codec()
 
+        # USB Audio
+        # if usb_microphone:
+        #     usb_microphone.play(self._audio_in)
+
     def _update_codec(self) -> None:
         if not self._needs_update:
             return
@@ -171,7 +179,7 @@ class BlinkaPedal:
 
     @led.setter
     def led(self, value: float) -> None:
-        self._led.duty_cycle = (2 ** 16 - 1) * min(max(value, 0.0), 1.0)
+        self._led.duty_cycle = int((2 ** 16 - 1) * min(max(value, 0.0), 1.0))
 
     @property
     def left_button(self) -> Button:
@@ -207,7 +215,7 @@ class BlinkaPedal:
 
     @property
     def sample_rate(self) -> int:
-        return self._audio_in.sample_rate
+        return self._sample_rate
 
     @property
     def bits_per_sample(self) -> int:

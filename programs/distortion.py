@@ -6,6 +6,7 @@ from audiofilters import Distortion, Filter, DistortionMode
 import synthio
 
 from blinka_pedal import BlinkaPedal
+import programs
 
 # Constants
 MIN_FILTER = 120
@@ -49,10 +50,11 @@ pedal.audio_out.play(
 boost = False
 while True:
     pedal.update()
-    pots = pedal.pots
+    programs.update(pedal)
 
     pedal.led = (not pedal.bypass) / (1 + (not boost) * 3)
 
+    pots = pedal.pots
     filter_effect.filter.frequency = pots[0] * (MAX_FILTER - MIN_FILTER) + MIN_FILTER
     pedal.level = pots[1]
     distortion_effect.drive = pots[2]
@@ -66,4 +68,3 @@ while True:
 
     if pedal.right_button.pressed:
         pedal.bypass = not pedal.bypass
-    

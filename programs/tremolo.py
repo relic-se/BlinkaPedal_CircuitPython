@@ -5,7 +5,8 @@
 import synthio
 import ulab.numpy as np
 
-from blink_pedal import BlinkaPedal
+from blinka_pedal import BlinkaPedal
+import programs
 
 # Constants
 MIN_SPEED = 0.1
@@ -76,6 +77,7 @@ set_waveform(0)
 mod = False
 while True:
     pedal.update()
+    programs.update(pedal)
 
     pots = pedal.pots
     mod_index = int(not pedal.left_switch.value) | (int(not pedal.right_switch.value) << 1)

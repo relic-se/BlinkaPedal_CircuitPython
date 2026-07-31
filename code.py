@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: GPLv3
 
-print("Hello, world!")
+import microcontroller
 
-# TODO: Program switcher, load last used effect, long press both pedals to change to next program
+import programs
+
+try:
+    programs.load(save=False)
+except OSError:
+    # Reset the device in safe mode unable to load program
+    microcontroller.on_next_reset(microcontroller.RunMode.SAFE_MODE)
+    microcontroller.reset()
