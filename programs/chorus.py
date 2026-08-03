@@ -72,7 +72,8 @@ while True:
     lfo.scale = lfo.offset / 2
 
     filter_effect.mix = not pedal.left_switch.value
-    chorus_effect.voices = MIN_VOICES if pedal.right_switch.value else MAX_VOICES
+    if pedal.right_switch.rose or pedal.right_switch.fell:
+        chorus_effect.voices = MIN_VOICES if pedal.right_switch.value else MAX_VOICES
 
     if pedal.left_button.pressed:
         double = True

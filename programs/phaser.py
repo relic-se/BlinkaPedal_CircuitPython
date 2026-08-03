@@ -59,8 +59,9 @@ while True:
     lfo.rate = pots[0] * (MAX_RATE - MIN_RATE) + MIN_RATE
     lfo.scale = (pots[1] * (1 - MIN_DEPTH) + MIN_DEPTH) * (MAX_FREQUENCY - MIN_FREQUENCY) / 2
     effect.feedback = pots[2] * (MAX_FEEDBACK - MIN_FEEDBACK) + MIN_FEEDBACK
-
-    effect.stages = ((int(not pedal.left_switch.value) | (int(not pedal.right_switch.value) << 1)) + 1) * STAGES_INCREMENT
+    
+    if pedal.left_switch.rose or pedal.left_switch.fell or pedal.right_switch.rose or pedal.right_switch.fell:
+        effect.stages = ((int(not pedal.left_switch.value) | (int(not pedal.right_switch.value) << 1)) + 1) * STAGES_INCREMENT
 
     # TODO: left button?
 
