@@ -39,8 +39,9 @@ waveforms = (
 waveform = -1
 
 # Initialize Hardware
-pedal = BlinkaPedal()
-pedal.mix = 0.0
+pedal = BlinkaPedal(
+    mix=0.0,
+)
 
 # Synth and LFO
 synth = synthio.Synthesizer(

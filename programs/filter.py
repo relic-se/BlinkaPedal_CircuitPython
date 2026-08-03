@@ -26,8 +26,9 @@ MAX_POLES   = 2
 BUFFER_SIZE = 2048  # bytes
 
 # Initialize Hardware
-pedal = BlinkaPedal()
-pedal.mix = 1.0
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 
 # Audio Objects
 lfo = synthio.LFO(

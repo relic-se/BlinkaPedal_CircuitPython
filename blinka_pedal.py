@@ -41,7 +41,14 @@ _PIN_BYPASS = board.GP8
 
 class BlinkaPedal:
 
-    def __init__(self, sample_rate: int|None = None, mono: bool|None = None) -> None:
+    def __init__(
+        self,
+        sample_rate: int|None = None,
+        mono: bool|None = None,
+        mix: float = 0.0,
+        level: float = 1.0,
+        bypass: bool = True,
+    ) -> None:
         self._sample_rate = sample_rate if sample_rate is not None else int(supervisor.get_setting("SAMPLE_RATE", 44100))
         self._mono = mono if mono is not None else bool(supervisor.get_setting("MONO", True))
 
@@ -141,9 +148,9 @@ class BlinkaPedal:
         self._pin_bypass.switch_to_output()
 
         # Control Parameters
-        self._bypass = True
-        self._mix = 0.0
-        self._level = 1.0
+        self._bypass = bypass
+        self._mix = mix
+        self._level = level
         self._needs_update = True
         self._update_codec()
 

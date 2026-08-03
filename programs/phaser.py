@@ -22,8 +22,9 @@ MIN_FEEDBACK = 0.5
 MAX_FEEDBACK = 1.0
 
 # Initialize Hardware
-pedal = BlinkaPedal()
-pedal.mix = 1.0
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 
 # Audio Objects
 lfo = synthio.LFO(

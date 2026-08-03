@@ -22,8 +22,9 @@ MODES = (
 )
 
 # Initialize Hardware
-pedal = BlinkaPedal()
-pedal.mix = 1.0
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 
 # Audio Objects
 distortion_effect = Distortion(
