@@ -10,7 +10,7 @@ from busio import I2C
 import digitalio
 from pwmio import PWMOut
 import supervisor
-# from usb_audio import usb_microphone
+from usb_audio import usb_microphone
 
 from adafruit_debouncer import Button, Debouncer
 from relic_tlv320aic3204 import TLV320AIC3204, INPUT_1, IMPEDANCE_40K
@@ -99,12 +99,14 @@ class BlinkaPedal:
             samples_signed=True,
             mono=self._mono,
         )
-        self._audio_out = I2SOut(
-            bit_clock=_PIN_BCLK,
-            word_select=_PIN_WCLK,
-            data=_PIN_DOUT,
-            external_clock=True,
-        )
+        
+        if not supervisor.runtime.usb_connected:
+            self._audio_out = I2SOut(
+                bit_clock=_PIN_BCLK,
+                word_select=_PIN_WCLK,
+                data=_PIN_DOUT,
+                external_clock=True,
+            )
 
         # Connect IN1L to Left MICPGA
         self._codec.connect_left_input(INPUT_1, IMPEDANCE_40K)
@@ -153,10 +155,6 @@ class BlinkaPedal:
         self._level = level
         self._needs_update = True
         self._update_codec()
-
-        # USB Audio
-        # if usb_microphone:
-        #     usb_microphone.play(self._audio_in)
 
     def _update_codec(self) -> None:
         if not self._needs_update:
@@ -218,7 +216,7 @@ class BlinkaPedal:
 
     @property
     def audio_out(self) -> I2SOut:
-        return self._audio_out
+        return usb_microphone if supervisor.runtime.usb_connected else self._audio_out
 
     @property
     def sample_rate(self) -> int:
