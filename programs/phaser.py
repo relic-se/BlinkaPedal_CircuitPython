@@ -11,32 +11,30 @@ import programs
 # Constants
 STAGES_INCREMENT = 8
 
-MIN_FREQUENCY = 200
-MAX_FREQUENCY = 2000
-MIN_DEPTH = 0.25
+MIN_FREQUENCY    = 200  # hz
+MAX_FREQUENCY    = 2000  # hz
+MIN_DEPTH        = 0.25
 
-MIN_RATE = 0.05
-MAX_RATE = 4.0
+MIN_RATE         = 0.05  # hz
+MAX_RATE         = 4.0  # hz
 
-MIN_FEEDBACK = 0.5
-MAX_FEEDBACK = 1.0
+MIN_FEEDBACK     = 0.5
+MAX_FEEDBACK     = 1.0
 
 # Initialize Hardware
 pedal = BlinkaPedal(
     mix=1.0,
 )
+pedal.update()
 
 # Audio Objects
 lfo = synthio.LFO(
     offset=(MIN_FREQUENCY + MAX_FREQUENCY) / 2,
-    scale=0,
-    rate=MIN_RATE,
 )
 
 effect = Phaser(
     frequency=lfo,
-    stages=STAGES_INCREMENT,
-    feedback=MIN_FEEDBACK,
+    stages=((int(not pedal.left_switch.value) | (int(not pedal.right_switch.value) << 1)) + 1) * STAGES_INCREMENT,
     mix=1.0,
 
     **pedal.audiosample_args,

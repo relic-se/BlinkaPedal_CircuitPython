@@ -25,10 +25,10 @@ BUFFER_SIZE = 1024  # bytes
 
 # Initialize Hardware
 pedal = BlinkaPedal()
+pedal.update()
 
 # Audio Objects
 lfo = LFO(
-    rate=MIN_SPEED,
     offset=MIN_DELAY,
     scale=0,
 )
@@ -36,7 +36,7 @@ lfo = LFO(
 chorus_effect = Chorus(
     max_delay_ms=MAX_DELAY * 2,
     delay_ms=lfo,
-    voices=MIN_VOICES,
+    voices=(MIN_VOICES if pedal.right_switch.value else MAX_VOICES),
     mix=1.0,
 
     buffer_size=BUFFER_SIZE,
@@ -45,7 +45,7 @@ chorus_effect = Chorus(
 
 filter_effect = Filter(
     filter=Biquad(FilterMode.LOW_PASS, FILTER_FREQ),
-    mix=0.0,
+    mix=(not pedal.left_switch.value),
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
@@ -71,7 +71,8 @@ while True:
     lfo.offset = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
     lfo.scale = lfo.offset / 2
 
-    filter_effect.mix = not pedal.left_switch.value
+    if pedal.left_switch.rose or pedal.left_switch.fell:
+        filter_effect.mix = not pedal.left_switch.value
     if pedal.right_switch.rose or pedal.right_switch.fell:
         chorus_effect.voices = MIN_VOICES if pedal.right_switch.value else MAX_VOICES
 

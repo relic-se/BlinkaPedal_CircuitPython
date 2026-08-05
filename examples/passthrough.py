@@ -9,6 +9,8 @@ pedal = BlinkaPedal(
     mix=1.0,
     level=1.0,
 )
+pedal.update()
+pedal.codec.adc_loopback = not pedal.left_switch.value
 
 # Audio Chain
 pedal.audio_out.play(
