@@ -19,7 +19,9 @@ MIN_DECAY = 0.25
 MAX_DECAY = 0.75
 
 # Initialize Hardware
-pedal = BlinkaPedal()
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 pedal.update()
 
 # Audio Objects
@@ -39,7 +41,7 @@ effect = Echo(
         lfo := synthio.LFO(),
     ),
     decay=(MIN_DECAY if pedal.left_switch.value else MAX_DECAY),
-    mix=0.5,
+    mix=not pedal.usb_connected,
     **pedal.audiosample_args,
 )
 
@@ -69,6 +71,7 @@ while True:
 
     if pedal.right_button.released:
         pedal.bypass = not pedal.bypass
-        effect.mix = not pedal.bypass
+        if pedal.usb_connected:
+            effect.mix = not pedal.bypass
     
     pedal.led = lfo.value * (not pedal.bypass)

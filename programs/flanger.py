@@ -18,7 +18,9 @@ MIN_FEEDBACK = 0.25
 MAX_FEEDBACK = 0.75
 
 # Initialize Hardware
-pedal = BlinkaPedal()
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 pedal.update()
 
 # Audio Objects
@@ -26,6 +28,7 @@ effect = Flanger(
     max_delay_ms=MAX_DELAY,
     feedback=(MIN_FEEDBACK if pedal.left_switch.value else MAX_FEEDBACK),
     invert=(not pedal.right_switch.value),
+    mix=not pedal.usb_connected,
     **pedal.audiosample_args,
 )
 
@@ -58,6 +61,7 @@ while True:
 
     if pedal.right_button.released:
         pedal.bypass = not pedal.bypass
-        effect.mix = not pedal.bypass
+        if pedal.usb_connected:
+            effect.mix = not pedal.bypass
     
     pedal.led = effect.lfo_value * effect.depth * (not pedal.bypass)

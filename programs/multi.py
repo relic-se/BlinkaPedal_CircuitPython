@@ -13,7 +13,9 @@ import programs
 STAGES = 6
 
 # Initialize Hardware
-pedal = BlinkaPedal()
+pedal = BlinkaPedal(
+    mix=1.0,
+)
 
 # Audio Objects
 effects = (
