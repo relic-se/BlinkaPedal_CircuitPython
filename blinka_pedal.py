@@ -46,6 +46,7 @@ class BlinkaPedal:
         self,
         sample_rate: int|None = None,
         mono: bool|None = None,
+        input_gain: float|None = None,
         mix: float = 0.0,
         level: float = 1.0,
         bypass: bool = True,
@@ -119,10 +120,11 @@ class BlinkaPedal:
 
         # Connect IN1L to Left MICPGA
         self._codec.connect_left_input(INPUT_1, IMPEDANCE_40K)
-        self._codec.left_input_gain = 0.0  # dB
+        input_gain = input_gain if input_gain is not None else float(supervisor.get_setting("INPUT_GAIN", 0.0))  # dB
+        self._codec.left_input_gain = input_gain  # dB
         if not self._mono:
             self._codec.connect_right_input(INPUT_1, IMPEDANCE_40K)
-            self._codec.right_input_gain = 0.0  # dB
+            self._codec.right_input_gain = input_gain  # dB
 
         # Setup DAC Output
         self._codec.left_dac_enabled = True
