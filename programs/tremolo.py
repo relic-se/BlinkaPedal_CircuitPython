@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPLv3
 
 from audiomixer import Mixer
-import supervisor
 import synthio
 import ulab.numpy as np
 
@@ -98,6 +97,6 @@ while True:
 
     if pedal.right_button.pressed:
         pedal.bypass = not pedal.bypass
-        if supervisor.runtime.usb_connected and not pedal.bypass:
+        if not pedal.bypass:
             pedal.update()  # reconstruct audio pathway
             mixer.play(pedal.audio_in)

@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPLv3
 
 from audiodelays import PitchShift
-import supervisor
 
 from blinka_pedal import BlinkaPedal
 import programs
@@ -34,7 +33,7 @@ while True:
 
     pots = pedal.pots
     pedal.mix = pots[0]
-    if supervisor.runtime.usb_connected:
+    if pedal.usb_connected:
         effect.mix = pots[0] * (not pedal.bypass)
     pedal.level = pots[1]
 

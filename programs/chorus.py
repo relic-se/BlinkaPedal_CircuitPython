@@ -4,7 +4,6 @@
 
 from audiodelays import Chorus
 from audiofilters import Filter
-import supervisor
 from synthio import LFO, Biquad, FilterMode
 
 from blinka_pedal import BlinkaPedal
@@ -69,9 +68,8 @@ while True:
         pedal.bypass = not pedal.bypass
 
     pots = pedal.pots
-    if not supervisor.runtime.usb_connected:
-        pedal.mix = pots[0]
-    else:
+    pedal.mix = pots[0]
+    if pedal.usb_connected:
         chorus_effect.mix = pots[0] * (not pedal.bypass)
     lfo.rate = (pots[1] * (MAX_SPEED - MIN_SPEED) + MIN_SPEED) * (1 + int(double))
     lfo.offset = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY

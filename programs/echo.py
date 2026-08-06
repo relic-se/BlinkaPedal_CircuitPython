@@ -4,7 +4,6 @@
 
 from audiodelays import Echo
 from audiofilters import Filter
-import supervisor
 import synthio
 import time
 
@@ -90,9 +89,8 @@ while True:
         infinite = False
 
     pots = pedal.pots
-    if not supervisor.runtime.usb_connected:
-        pedal.mix = pots[0]
-    else:
+    pedal.mix = pots[0]
+    if pedal.usb_connected:
         delay_effect.mix = pots[0] * (not pedal.bypass)
     delay_effect.decay = 1.0 if infinite else pots[1]
     delay_effect.delay_ms.b = delay_effect.delay_ms.c = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY

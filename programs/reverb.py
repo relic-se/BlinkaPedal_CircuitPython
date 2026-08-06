@@ -4,7 +4,6 @@
 
 from audiofreeverb import Freeverb
 from audiofilters import Filter
-import supervisor
 from synthio import Biquad, FilterMode
 
 from blinka_pedal import BlinkaPedal
@@ -54,7 +53,7 @@ while True:
 
     pots = pedal.pots
     roomsize, reverb_effect.damp, pedal.mix = pots
-    if supervisor.runtime.usb_connected:
+    if pedal.usb_connected:
         reverb_effect.mix = pots[2] * (not pedal.bypass)
         filter_effect.mix = pots[2] * (not pedal.bypass)
 

@@ -101,7 +101,7 @@ class BlinkaPedal:
             mono=self._mono,
         )
         
-        if not supervisor.runtime.usb_connected:
+        if self.usb_connected:
             self._audio_out = I2SOut(
                 bit_clock=_PIN_BCLK,
                 word_select=_PIN_WCLK,
@@ -188,7 +188,7 @@ class BlinkaPedal:
         if not self._mono:
             self._codec.right_input_passthrough_volume = input_volume
 
-        if supervisor.runtime.usb_connected:
+        if self.usb_connected:
             self._usb_mixer.voice[0].level = self._level
             if self._bypass_changed:
                 self._bypass_changed = False
@@ -199,6 +199,10 @@ class BlinkaPedal:
                     self._usb_mixer.play(self._sample)
         else:
             self._bypass_changed = False
+
+    @property
+    def usb_connected(self) -> bool:
+        return usb_microphone is not None
 
     @property
     def led(self) -> float:
@@ -237,7 +241,7 @@ class BlinkaPedal:
         return self._audio_in
 
     def play(self, sample) -> None:
-        if not supervisor.runtime.usb_connected:
+        if not self.usb_connected:
             self._audio_out.play(sample)
         else:
             self._sample = sample
