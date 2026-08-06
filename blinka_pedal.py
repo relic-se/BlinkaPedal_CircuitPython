@@ -101,7 +101,7 @@ class BlinkaPedal:
             mono=self._mono,
         )
         
-        if usb_microphone is None:
+        if not self.usb_connected:
             self._audio_out = I2SOut(
                 bit_clock=_PIN_BCLK,
                 word_select=_PIN_WCLK,
@@ -202,7 +202,9 @@ class BlinkaPedal:
 
     @property
     def usb_connected(self) -> bool:
-        return usb_microphone is not None and self._usb_mixer is not None
+        if hasattr(self, "_usb_mixer") and self._usb_mixer is None:
+            return False
+        return supervisor.runtime.usb_connected and usb_microphone is not None
 
     @property
     def led(self) -> float:
