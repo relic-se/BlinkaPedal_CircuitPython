@@ -1,0 +1,4 @@
+PROGRAM = "distortion.py"  # Updated when program is changed by holding down both stomp switches
+SAMPLE_RATE = 44100 # hz, possible values: 8000, 11025, 16000, 22050, 32000, 44100, 48000
+MONO = true
+INPUT_GAIN = 0.0 # dB, 0.0 dB to 47.5 dB in 0.5 dB increments
