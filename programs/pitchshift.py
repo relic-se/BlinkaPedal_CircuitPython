@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPLv3
 
 from audiodelays import PitchShift
+import supervisor
 
 from blinka_pedal import BlinkaPedal
 import programs
@@ -12,14 +13,11 @@ pedal = BlinkaPedal()
 
 # Audio Object
 effect = PitchShift(
-    semitones=0.0,
-    mix=1.0,
-
     **pedal.audiosample_args,
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     effect.play(
         pedal.audio_in
     )
@@ -30,9 +28,15 @@ momentary = False
 while True:
     pedal.update()
     programs.update(pedal)
+    
+    pedal.bypass = not momentary and not toggle
+    pedal.led = not pedal.bypass
 
     pots = pedal.pots
-    pedal.mix, pedal.level = pots[:2]
+    pedal.mix = pots[0]
+    if supervisor.runtime.usb_connected:
+        effect.mix = pots[0] * (not pedal.bypass)
+    pedal.level = pots[1]
 
     semitones = pots[2] * 24 - 12
     if not pedal.left_switch.value:
@@ -48,6 +52,3 @@ while True:
 
     if pedal.right_button.pressed:
         toggle = not toggle
-    
-    pedal.bypass = not momentary and not toggle
-    pedal.led = not pedal.bypass

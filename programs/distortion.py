@@ -22,25 +22,23 @@ MODES = (
 )
 
 # Initialize Hardware
-pedal = BlinkaPedal(
-    mix=1.0,
-)
+pedal = BlinkaPedal()
 
 # Audio Objects
 distortion_effect = Distortion(
-    drive=0.0,
-    mix=1.0,
     soft_clip=True,
+    mix=0.0,  # initial bypassed state
     **pedal.audiosample_args,
 )
 
 filter_effect = Filter(
     filter=synthio.Biquad(synthio.FilterMode.LOW_PASS, MAX_FILTER),
+    mix=0.0,  # initial bypassed state
     **pedal.audiosample_args,
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     filter_effect.play(
         distortion_effect.play(
             pedal.audio_in
@@ -52,6 +50,11 @@ boost = False
 while True:
     pedal.update()
     programs.update(pedal)
+
+    if pedal.right_button.pressed:
+        pedal.bypass = not pedal.bypass
+        distortion_effect.mix = not pedal.bypass
+        filter_effect.mix = not pedal.bypass
 
     pedal.led = (not pedal.bypass) / (1 + (not boost) * 3)
 
@@ -66,6 +69,3 @@ while True:
     if pedal.left_button.pressed:
         boost = not boost
         distortion_effect.pre_gain = BOOST_GAIN * boost
-
-    if pedal.right_button.pressed:
-        pedal.bypass = not pedal.bypass

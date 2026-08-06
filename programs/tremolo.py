@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPLv3
 
+from audiomixer import Mixer
+import supervisor
 import synthio
 import ulab.numpy as np
 
@@ -43,12 +45,7 @@ pedal = BlinkaPedal(
     mix=0.0,
 )
 
-# Synth and LFO
-synth = synthio.Synthesizer(
-    sample_rate=pedal.sample_rate,
-    channel_count=pedal.channel_count,
-)
-
+# Audio Objects
 lfo = synthio.Math(
     synthio.MathOperation.SCALE_OFFSET,
     synthio.LFO(
@@ -60,10 +57,15 @@ lfo = synthio.Math(
     0.0,  # Depth
     1.0  # Level
 )
-synth.blocks.append(lfo)  # Use synth to update LFO
+
+mixer = Mixer(
+    voice_count=1,
+    **pedal.audiosample_args,
+)
+mixer.voice[0].level = lfo
 
 # Audio Chain
-pedal.audio_out.play(synth)  # No audio will actually happen
+pedal.play(mixer)
 
 # Assign controls
 def set_waveform(index: int):
@@ -96,3 +98,6 @@ while True:
 
     if pedal.right_button.pressed:
         pedal.bypass = not pedal.bypass
+        if supervisor.runtime.usb_connected and not pedal.bypass:
+            pedal.update()  # reconstruct audio pathway
+            mixer.play(pedal.audio_in)

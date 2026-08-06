@@ -4,6 +4,7 @@
 
 from audiodelays import Chorus
 from audiofilters import Filter
+import supervisor
 from synthio import LFO, Biquad, FilterMode
 
 from blinka_pedal import BlinkaPedal
@@ -37,7 +38,6 @@ chorus_effect = Chorus(
     max_delay_ms=MAX_DELAY * 2,
     delay_ms=lfo,
     voices=(MIN_VOICES if pedal.right_switch.value else MAX_VOICES),
-    mix=1.0,
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
@@ -52,7 +52,7 @@ filter_effect = Filter(
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     filter_effect.play(
         chorus_effect.play(
             pedal.audio_in
@@ -65,14 +65,19 @@ while True:
     pedal.update()
     programs.update(pedal)
 
+    if pedal.right_button.released:
+        pedal.bypass = not pedal.bypass
+
     pots = pedal.pots
-    pedal.mix = pots[0]
+    if not supervisor.runtime.usb_connected:
+        pedal.mix = pots[0]
+    else:
+        chorus_effect.mix = pots[0] * (not pedal.bypass)
     lfo.rate = (pots[1] * (MAX_SPEED - MIN_SPEED) + MIN_SPEED) * (1 + int(double))
     lfo.offset = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY
     lfo.scale = lfo.offset / 2
 
-    if pedal.left_switch.rose or pedal.left_switch.fell:
-        filter_effect.mix = not pedal.left_switch.value
+    filter_effect.mix = not pedal.bypass and not pedal.left_switch.value
     if pedal.right_switch.rose or pedal.right_switch.fell:
         chorus_effect.voices = MIN_VOICES if pedal.right_switch.value else MAX_VOICES
 
@@ -80,8 +85,5 @@ while True:
         double = True
     elif pedal.left_button.released:
         double = False
-
-    if pedal.right_button.released:
-        pedal.bypass = not pedal.bypass
 
     pedal.led = ((lfo.value - lfo.offset) / lfo.scale * pots[2] + 1) / 2 * (not pedal.bypass)

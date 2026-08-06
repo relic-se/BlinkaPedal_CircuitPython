@@ -5,6 +5,7 @@
 from analogio import AnalogIn
 from audiobusio import I2SOut
 from audioi2sin import I2SIn
+from audiomixer import Mixer
 import board
 from busio import I2C
 import digitalio
@@ -108,6 +109,14 @@ class BlinkaPedal:
                 external_clock=True,
             )
 
+        else:
+            # USB Output Mixer
+            self._usb_mixer = Mixer(
+                voice_count=1,
+                **self.audiosample_args,
+            )
+            self._sample = None
+
         # Connect IN1L to Left MICPGA
         self._codec.connect_left_input(INPUT_1, IMPEDANCE_40K)
         self._codec.left_input_gain = 0.0  # dB
@@ -151,6 +160,7 @@ class BlinkaPedal:
 
         # Control Parameters
         self._bypass = bypass
+        self._bypass_changed = True
         self._mix = mix
         self._level = level
         self._needs_update = True
@@ -177,6 +187,18 @@ class BlinkaPedal:
         self._codec.left_input_passthrough_volume = input_volume
         if not self._mono:
             self._codec.right_input_passthrough_volume = input_volume
+
+        if supervisor.runtime.usb_connected:
+            self._usb_mixer.voice[0].level = self._level
+            if self._bypass_changed:
+                self._bypass_changed = False
+                self._usb_mixer.stop_voice()
+                usb_microphone.stop()
+                usb_microphone.play(self._audio_in if self._bypass else self._usb_mixer)
+                if not self._bypass and self._sample is not None:
+                    self._usb_mixer.play(self._sample)
+        else:
+            self._bypass_changed = False
 
     @property
     def led(self) -> float:
@@ -214,9 +236,12 @@ class BlinkaPedal:
     def audio_in(self) -> I2SIn:
         return self._audio_in
 
-    @property
-    def audio_out(self) -> I2SOut:
-        return usb_microphone if supervisor.runtime.usb_connected else self._audio_out
+    def play(self, sample) -> None:
+        if not supervisor.runtime.usb_connected:
+            self._audio_out.play(sample)
+        else:
+            self._sample = sample
+            self._needs_update = True
 
     @property
     def sample_rate(self) -> int:
@@ -251,6 +276,7 @@ class BlinkaPedal:
     def bypass(self, value: bool) -> None:
         if value is not self._bypass:
             self._bypass = value
+            self._bypass_changed = True
             self._needs_update = True
 
     @property

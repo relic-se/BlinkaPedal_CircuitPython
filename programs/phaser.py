@@ -41,7 +41,7 @@ effect = Phaser(
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     effect.play(
         pedal.audio_in
     )

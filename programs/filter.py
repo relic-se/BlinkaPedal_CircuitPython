@@ -26,9 +26,7 @@ MAX_POLES   = 2
 BUFFER_SIZE = 2048  # bytes
 
 # Initialize Hardware
-pedal = BlinkaPedal(
-    mix=1.0,
-)
+pedal = BlinkaPedal()
 
 # Audio Objects
 lfo = synthio.LFO(
@@ -57,17 +55,16 @@ filters = [
     for i in range(MAX_POLES)
 ]
 
-filter_effect = Filter(
+effect = Filter(
     filter=tuple(filters[:MIN_POLES]),
-    mix=1.0,
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
 )
 
 # Audio Chain
-pedal.audio_out.play(
-    filter_effect.play(
+pedal.play(
+    effect.play(
         pedal.audio_in
     )
 )
@@ -87,8 +84,8 @@ while True:
     lfo.scale = (not pedal.left_switch.value or auto)
 
     poles = MIN_POLES if pedal.right_switch.value else MAX_POLES
-    if len(filter_effect.filter) != poles:
-        filter_effect.filter = tuple(filters[:poles])
+    if len(effect.filter) != poles:
+        effect.filter = tuple(filters[:poles])
 
     if pedal.left_button.pressed:
         auto = True
@@ -97,5 +94,7 @@ while True:
 
     if pedal.right_button.released:
         pedal.bypass = not pedal.bypass
+        pedal.mix = not pedal.bypass
+        effect.mix = not pedal.bypass
 
     pedal.led = (lfo.value + 1) / 2 * (not pedal.bypass)

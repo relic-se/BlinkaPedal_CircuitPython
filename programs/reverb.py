@@ -4,6 +4,7 @@
 
 from audiofreeverb import Freeverb
 from audiofilters import Filter
+import supervisor
 from synthio import Biquad, FilterMode
 
 from blinka_pedal import BlinkaPedal
@@ -22,7 +23,6 @@ pedal = BlinkaPedal()
 reverb_effect = Freeverb(
     roomsize=0.0,
     damp=0.0,
-    mix=1.0,
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
@@ -33,14 +33,13 @@ filter_effect = Filter(
         Biquad(FilterMode.LOW_PASS, 20000),
         Biquad(FilterMode.HIGH_PASS, 20),
     ),
-    mix=1.0,
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     filter_effect.play(
         reverb_effect.play(
             pedal.audio_in
@@ -53,7 +52,11 @@ while True:
     pedal.update()
     programs.update(pedal)
 
-    roomsize, reverb_effect.damp, pedal.mix = pedal.pots
+    pots = pedal.pots
+    roomsize, reverb_effect.damp, pedal.mix = pots
+    if supervisor.runtime.usb_connected:
+        reverb_effect.mix = pots[2] * (not pedal.bypass)
+        filter_effect.mix = pots[2] * (not pedal.bypass)
 
     lpf, hpf = filter_effect.filter
     lpf.frequency = 20000 if pedal.left_switch.value else LPF_FILTER_FREQ

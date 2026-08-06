@@ -4,6 +4,7 @@
 
 from audiodelays import Echo
 from audiofilters import Filter
+import supervisor
 import synthio
 import time
 
@@ -40,7 +41,6 @@ delay_effect = Echo(
         TAPE_LENGTH,
         TAPE_LENGTH
     ),
-    mix=1.0,
     freq_shift=True,
 
     buffer_size=BUFFER_SIZE,
@@ -49,14 +49,13 @@ delay_effect = Echo(
 
 filter_effect = Filter(
     filter=synthio.Biquad(synthio.FilterMode.LOW_PASS, FILTER_FREQ),
-    mix=1.0,
 
     buffer_size=BUFFER_SIZE,
     **pedal.audiosample_args,
 )
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     filter_effect.play(
         delay_effect.play(
             pedal.audio_in
@@ -78,7 +77,7 @@ while True:
 
     pedal.led = led_state and not pedal.bypass
 
-    filter_effect.mix = 1.0 * (not pedal.left_switch.value)
+    filter_effect.mix = 1.0 * (not pedal.left_switch.value) * (not pedal.bypass)
     delay_lfo.scale = LFO_SCALE * (not pedal.right_switch.value)
 
     if pedal.right_button.released:
@@ -91,6 +90,9 @@ while True:
         infinite = False
 
     pots = pedal.pots
-    pedal.mix = pots[0]
+    if not supervisor.runtime.usb_connected:
+        pedal.mix = pots[0]
+    else:
+        delay_effect.mix = pots[0] * (not pedal.bypass)
     delay_effect.decay = 1.0 if infinite else pots[1]
     delay_effect.delay_ms.b = delay_effect.delay_ms.c = pots[2] * (MAX_DELAY - MIN_DELAY) + MIN_DELAY

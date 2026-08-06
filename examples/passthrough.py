@@ -13,7 +13,7 @@ pedal.update()
 pedal.codec.adc_loopback = not pedal.left_switch.value
 
 # Audio Chain
-pedal.audio_out.play(
+pedal.play(
     pedal.audio_in
 )
 
